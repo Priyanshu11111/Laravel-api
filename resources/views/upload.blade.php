@@ -13,7 +13,7 @@
         <!-- Styles -->
     </head>
     <body class="antialiased">
-        <form action="port" enctype="multipart/form-data" action="{{url('upload')}}">
+        <form method="post" enctype="multipart/form-data" action="{{url('/upload')}}">
             @csrf 
             <div> 
             <label for="">Example file input</label>
@@ -21,5 +21,5 @@
             </div>
           <br><button class="btn btn-primary">
             upload
-            </button>
+        </button>
                    

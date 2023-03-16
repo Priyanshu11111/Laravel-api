@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\Customer;
 use App\Http\Controllers\CustomerController;
-use app\Models\Customer;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,9 +17,12 @@ use app\Models\Customer;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 Route::apiResource('customers',CustomerController::class);
+Route::post('login',[Authcontroller::class,'login']);
+Route::middleware('auth:sanctum')->group(function (){
+    Route::get('user',[Authcontroller::class,'user']);
+});
+Route::apiResource('asset',AssetController::class);
 
+Route::post('customer',[CustomerController::class,'login']);
+Route::post('customer/login',[CustomerController::class,'login']);

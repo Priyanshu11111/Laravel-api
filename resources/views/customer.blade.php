@@ -13,13 +13,13 @@
         <!-- Styles -->
     </head>
     <body class="antialiased">
-        <form action="" method="post">
+        <form action="{{url('/')}}/customer" method="post">
             @csrf 
             <div class="container">
                 <h1 class="text-center">Registration Form</h1>
                 <div class="form group">
                     <label for="">Firstname</label>
-                    <input type ="text" name="firstname" id="" class="form-control" placeholder="" value="{{old('name')}}"/> 
+                    <input type ="text" name="firstname" id="" class="form-control" placeholder="" /> 
                     <span class='text-danger'>
                         @error('firstname')
                         {{$message}}
@@ -27,7 +27,7 @@
                     </span>
                     <br>
                     <label for="">Lastname</label>
-                    <input type ="text" name="lastname" id="" class="form-control" placeholder="" value="{{old('name')}}"/> 
+                    <input type ="text" name="lastname" id="" class="form-control" placeholder="" /> 
                     <span class='text-danger'>
                         @error('lastname')
                         {{$message}}
@@ -37,7 +37,7 @@
             </div>
             <div class="form-group">
                 <label for="">Email</label>
-                <input type ="email" name="email" id="" class="form-control" placeholder="" value="{{old('email')}}"/>
+                <input type ="email" name="email" id="" class="form-control" placeholder="" />
                 <span class='text-danger'>
                         @error('email')
                         {{$message}}
