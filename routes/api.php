@@ -3,10 +3,9 @@
 use App\Http\Controllers\AssetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\Customer;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,10 +18,18 @@ use App\Http\Controllers\AuthController;
 */
 Route::apiResource('customers',CustomerController::class);
 Route::post('login',[Authcontroller::class,'login']);
+Route::get('notifications{id}',[NotificationController::class,'show']);
 Route::middleware('auth:sanctum')->group(function (){
-    Route::get('user',[Authcontroller::class,'user']);
+    Route::put('/profile',[CustomerController::class,'updateProfile']);
+    Route::get('/profile',[CustomerController::class,'getAuthorizedUserInfo']);
+    Route::post('/logout',[CustomerController::class,'logout']);
+    Route::get('/activitylog',[CustomerController::class,'showactivity']);
+    Route::get('/notifications',[CustomerController::class,'getNotifications']);
+    Route::post('/markasread',[CustomerController::class,'markNotificationsAsRead']);
 });
 Route::apiResource('asset',AssetController::class);
 
 Route::post('customer',[CustomerController::class,'login']);
 Route::post('customer/login',[CustomerController::class,'login']);
+
+

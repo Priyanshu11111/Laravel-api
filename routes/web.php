@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\Contactcontroller;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Customer; 
+use App\Models\Customer;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,8 +22,9 @@ Route::post('/customer',[CustomerController::class,'store']);
 Route::get('/customer/delete/{id}',[CustomerController::class,'delete']);
 Route::get('/customer/edit/{id}',[CustomerController::class,'edit']);
 Route::post('/customer/update/{id}',[CustomerController::class,'update']); */
-Route::get('/upload',[ContactController::class,'index']);
-Route::post('/upload',[ContactController::class,'upload']);
+/* Route::get('/upload',[ContactController::class,'index']);
+Route::post('/upload',[ContactController::class,'upload']); */
 
 
 
+Route::get('/users/{id}/notifications', [NotificationController::class, 'show']);

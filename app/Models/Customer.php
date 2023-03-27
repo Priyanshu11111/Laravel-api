@@ -11,7 +11,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Customer extends Authenticatable
 {
-    use HasFactory,HasApiTokens,Notifiable;
+    use Notifiable,HasFactory,HasApiTokens;
     protected $table="customers";
     protected $fillable=[
         'id',
