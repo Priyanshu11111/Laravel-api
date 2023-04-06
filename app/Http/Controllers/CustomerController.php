@@ -4,15 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
-use Illuminate\Support\Facades\DB;
-use App\Models\Admin;
-use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\UserActivitylog;
 use App\Notifications\WelcomeNotification;
-use Illuminate\Support\Facades\Notification;
 
 class CustomerController extends Controller
 {
@@ -98,6 +93,7 @@ class CustomerController extends Controller
         $log->save();
 
     $customer->notify(new WelcomeNotification($customer));
+
     return response()->json([
         'status' => true,
         'message' => 'Record added successfully',
@@ -139,26 +135,45 @@ class CustomerController extends Controller
         $log->modifyuser = 'User Login';
         $log->date_time = Carbon::now();
         $log->save();
-        
-        $token = $user->createToken('my-app-token')->plainTextToken;
+
+        $expiresAt = Carbon::now()->addMinutes(1);
+        $token = $user->createToken('my-app-token',['expires_at' => $expiresAt])->plainTextToken;
+
 
         return response([
             'message' => "success",
             'token' => $token,
-          
+            'expires_at' => $expiresAt->toDateTimeString(),
         ]);
 
     } 
+    public function refreshToken(Request $request)
+{
+    $user = $request->user();
+    $user->tokens()->delete();
+
+    $expiresAt = Carbon::now()->addMinutes(1);
+    $token = $user->createToken('refresh-token',['expires_at' => $expiresAt])->plainTextToken;
+
+    return response([
+        'message' => "success",
+        'token' => $token,
+        'expires_at' => $expiresAt->toDateTimeString(),
+    ]);
+}
     public function getNotifications() {
         // Get the authenticated user
         $user = auth()->user();
         
         // Get the notifications for the user
         $notifications = $user->notifications;
+
+        $unreadCount = $user->unreadNotifications->count();
         
         if ($notifications->isEmpty()) {
             return response()->json([
-                'notifications' => []
+                'notifications' => [],
+                'unread_count' => $unreadCount
             ]);
         }
         $notificationsData = $notifications->map(function ($notification) {
@@ -167,17 +182,21 @@ class CustomerController extends Controller
         
         // Return the notifications as a response
         return response()->json([
-            'notifications' => $notificationsData
+            'notifications' => $notificationsData,
+            'unread_count' => $unreadCount
         ]);
        
     }
-    public function markNotificationsAsRead()
+    public function markNotificationsAsRead($id)
 {
     // Get the authenticated user
     $user = auth()->user();
     
     // Mark all the notifications as read
+    $notifications = $user->notifications;
+
     $user->unreadNotifications->markAsRead();
+
     
     // Return a success response
     return response()->json([
@@ -186,6 +205,7 @@ class CustomerController extends Controller
 }
     public function getAuthorizedUserInfo() {
         $user = auth()->user();
+        
         if (!$user) {
             return response([
                 'message' => 'User not authenticated'
@@ -208,6 +228,13 @@ class CustomerController extends Controller
         return response([
             'message' => 'User not authenticated'
         ], 401);  
+    }
+    $tokens = $user->tokens;
+    foreach ($tokens as $token) {
+        if ($token->expires_at && Carbon::now()->gt($token->expires_at)) {
+            continue;
+        }
+        $token->delete();
     }
     $request->user()->tokens()->delete();
         $log = new UserActivitylog();
