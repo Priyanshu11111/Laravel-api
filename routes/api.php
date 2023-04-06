@@ -5,7 +5,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ModelsController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TypesController;
+use App\Http\Controllers\SupplierController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -25,10 +29,13 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/logout',[CustomerController::class,'logout']);
     Route::get('/activitylog',[CustomerController::class,'showactivity']);
     Route::get('/notifications',[CustomerController::class,'getNotifications']);
-    Route::post('/markasread',[CustomerController::class,'markNotificationsAsRead']);
+    Route::post('/markasread/{id}',[CustomerController::class,'markNotificationsAsRead']);
+    Route::post('/refresh',[CustomerController::class,'refreshToken']);
+    Route::apiResource('/types',TypesController::class);
+    Route::apiResource('/supplier',SupplierController::class);
+    Route::apiResource('/models',ModelsController::class);
 });
 Route::apiResource('asset',AssetController::class);
-
 Route::post('customer',[CustomerController::class,'login']);
 Route::post('customer/login',[CustomerController::class,'login']);
 

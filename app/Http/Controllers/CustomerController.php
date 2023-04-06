@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\UserActivitylog;
 use App\Notifications\WelcomeNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 
 class CustomerController extends Controller
 {
@@ -161,7 +163,7 @@ class CustomerController extends Controller
         'expires_at' => $expiresAt->toDateTimeString(),
     ]);
 }
-    public function getNotifications() {
+    public function getNotifications($id=null) {
         // Get the authenticated user
         $user = auth()->user();
         
@@ -169,6 +171,11 @@ class CustomerController extends Controller
         $notifications = $user->notifications;
 
         $unreadCount = $user->unreadNotifications->count();
+
+        if ($id !== null) {
+            $notification = $notifications->where('id', $id)->first();
+        }
+    
         
         if ($notifications->isEmpty()) {
             return response()->json([
@@ -177,7 +184,10 @@ class CustomerController extends Controller
             ]);
         }
         $notificationsData = $notifications->map(function ($notification) {
-            return $notification->data;
+            return  [
+                'id' => $notification->id,
+                'data' => $notification->data,
+            ];
         });
         
         // Return the notifications as a response
@@ -191,21 +201,19 @@ class CustomerController extends Controller
 {
     // Get the authenticated user
     $user = auth()->user();
-    
-    // Mark all the notifications as read
-    $notifications = $user->notifications;
-
-    $user->unreadNotifications->markAsRead();
+    \Log::debug($id);
+    $notification = $user->notifications()->findOrFail($id);
+    $notification->markAsRead();
 
     
     // Return a success response
     return response()->json([
-        'success' => true
+        'success' => true,
+        'notifications' => $notification
     ]);
 }
     public function getAuthorizedUserInfo() {
         $user = auth()->user();
-        
         if (!$user) {
             return response([
                 'message' => 'User not authenticated'
