@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-class Models extends Model
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\HasApiTokens;
+class Models extends  Authenticatable
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
     protected $table="models";
     protected $fillable=[
         'id',
@@ -16,4 +17,22 @@ class Models extends Model
         'name',
         'alias'
     ];
+    //this for Modelscontroller
+       public function type()
+    {
+        return $this->belongsTo(Types::class,'types');
+    }
+    // This for Typescontroller
+    public function types()
+    {
+        return $this->belongsTo('App\Models\Types');
+    }
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class,'supplier');
+    }
+    public function needs()
+    {
+        return $this->belongsTo('App\Models\Need','');
+    }
 }

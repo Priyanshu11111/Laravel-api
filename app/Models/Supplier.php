@@ -14,4 +14,8 @@ class Supplier extends Model
         'name',
         'comment',
     ];
+    public function models()
+    {
+        return $this->hasMany(Models::class);
+    }
 }

@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\Types;
+
 use App\Models\Models;
+
 use Illuminate\Http\Request;
 use App\Models\UserActivitylog;
+use App\Notifications\ModelsNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class ModelsController extends Controller
 {
     public function index(){
-        $model= Models::get();
-        return response()->json($model); 
+        $models = $this->getAllModels()->original['models'];
+        return response()->json($models); 
     }
     public function store(Request $request){
         $rules = [
@@ -41,6 +46,11 @@ class ModelsController extends Controller
         $log->save();   
 
     
+        $customers=Customer::all();
+        foreach($customers as $customer){
+            $customer->notify(new ModelsNotification($model));
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Model saved successfully',
@@ -66,7 +76,7 @@ class ModelsController extends Controller
             'message' => "Record deleted successfully",
         ], 200);
     }
-    public function update($id,Request $request){
+    public function update($id,Request $request){   
         $rules = [
             'types' => 'required',
             'supplier' => 'required',
@@ -100,11 +110,72 @@ class ModelsController extends Controller
     }
     public function show($id){
         $model = Models::find($id);
-        if (is_null($model)) {
+    
+        if (!$model) {
+            return response()->json(['error' => 'Model not found'], 404);
+        }
+    
+        $type = $model->type; // assuming you have a "model" relationship defined in the Types model
+
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+        return response()->json(['model' => $model], 200);        if (is_null($model)) {
             return redirect('/customer');
         } else {
             $data = compact('model');
             return $data;
         }
     }
+    public function viewmodels($id){
+        $model = Models::with(['type','supplier'])->find($id);
+    
+        if (!$model) {
+            return response()->json(['error' => 'Model not found'], 404);
+        }
+        $type = $model->type; // assuming you have a "model" relationship defined in the Types model
+
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+        return response()->json(['model' => $model], 200);        if (is_null($model)) {
+            return redirect('/customer');
+        } else {
+            $data = compact('model');
+            return $data;
+        }
+    }
+    public function getModelName($id)
+    {
+        $model = Models::with(['type','supplier'])->find($id);
+     
+        if (!$model) {
+            return response()->json(['error' => 'Model not found'], 404);
+        }
+        $type = $model->type; // assuming you have a "model" relationship defined in the Types model
+
+        $supplier = $model->supplier;
+        if (!$supplier) {
+            return response()->json(['error' => 'Supplier not found'], 404);
+        }
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+        return response()->json(['model' => $model], 200);
+    }
+    public function getAllModels(){
+        $models = Models::with(['type','supplier'])->get();
+
+    if (!$models->count()) {
+        return response()->json(['error' => 'No models found'], 404);
+    }
+    foreach ($models as $model) {
+        $type = $model->type; // assuming you have a "model" relationship defined in the Types model
+
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+    }
+    return response()->json(['models' => $models], 200);
 }
+}   

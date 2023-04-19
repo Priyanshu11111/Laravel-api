@@ -6,6 +6,8 @@ use App\Models\Types;
 use Illuminate\Http\Request;
 use App\Models\UserActivitylog;
 use Carbon\Carbon;
+use App\Models\Customer;
+use App\Notifications\TypesNotification;
 
 class TypesController extends Controller
 {
@@ -13,6 +15,7 @@ class TypesController extends Controller
     $types = Types::select('id','name', 'comment','created_at','updated_at')->get();
     return response()->json($types);
    }
+
    public function store(Request $request){
     $rules = [
         'name' => 'required',
@@ -34,6 +37,12 @@ class TypesController extends Controller
     $log->date_time = Carbon::now()->utc();
     $log->created_at = Carbon::now()->utc();
     $log->save();   
+
+    $customers=Customer::all();
+    foreach($customers as $customer){
+        $customer->notify(new TypesNotification($types));
+    }
+    
     return response()->json([
         'status' => true,
         'message' => 'Type added successfully',
@@ -96,4 +105,20 @@ class TypesController extends Controller
             'model' => $types,  
         ], 200);
     }
+  public function getTypeName($id)
+  {
+      $type = Types::find($id);
+  
+      if (!$type) {
+          return response()->json(['error' => 'Type not found'], 404);
+      }
+  
+      $models = $type->models; // retrieve all models associated with this type
+  
+      if (!$models) {
+          return response()->json(['error' => 'No models found for this type'], 404);
+      }
+  
+      return response()->json(['type' => $type], 200);
+  }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use App\Models\SupplierContact;
 use App\Models\UserActivitylog;
+use App\Notifications\SuppliersNotification;
 use Carbon\Carbon;
 
 class SupplierController extends Controller
@@ -53,7 +55,11 @@ class SupplierController extends Controller
     $log->date_time = Carbon::now()->utc();
     $log->created_at = Carbon::now()->utc();
     $log->save();   
-
+    
+    $customers=Customer::all();
+    foreach($customers as $customer){
+        $customer->notify(new SuppliersNotification($supplier,$contacts));
+    }
         return response()->json([
             'status' => true,
             'message' => 'Supplier and SupplierContacts added successfully',
@@ -103,15 +109,16 @@ class SupplierController extends Controller
         $supplier->comment = $request['comment'];
         $supplier->save();
 
-  /*       $newAttributes = $supplier->getAttributes(); // Get the updated attributes
+        $newAttributes = $supplier->getAttributes(); // Get the updated attributes
         $changes = array_diff_assoc($newAttributes, $oldAttributes); // Get the attributes that were changed */
-
-/*         $log = new UserActivitylog();
+ 
+        $log = new UserActivitylog();
         $log->email = auth()->user()->email; // assuming the currently logged in user is the one making the modification
         $log->modifyuser = 'Supplier updated: ' . json_encode($changes); ; // modify this to reflect the specific action being logged
         $log->date_time = Carbon::now()->utc();
         $log->created_at = Carbon::now()->utc();
-        $log->save();    */
+        $log->save();    
+
         $contacts = $request->input('fields');
         if (isset($contacts) && !empty($contacts)) {
             $contactData = [];
@@ -126,7 +133,16 @@ class SupplierController extends Controller
                 if (isset($contact['id'])) {
                     $contactRecord = SupplierContact::find($contact['id']);
                     if ($contactRecord) {
+                        $oldAttributes = $contactRecord->getAttributes();
                         $contactRecord->update($data);
+                        $newAttributes = $contactRecord->getAttributes();
+                        $changes = array_diff_assoc($newAttributes, $oldAttributes);
+                        $log = new UserActivitylog();
+                        $log->email = auth()->user()->email;
+                        $log->modifyuser = 'Supplier contact updated: ' . json_encode($changes);
+                        $log->date_time = Carbon::now()->utc();
+                        $log->created_at = Carbon::now()->utc();
+                        $log->save();
                     }
                 } else {
                     $contactData[] = $data;
@@ -134,6 +150,14 @@ class SupplierController extends Controller
             }
             if ($contactData) {
                  SupplierContact::insert($contactData);
+                 foreach ($contactData as $data) {
+                    $log = new UserActivitylog();
+                    $log->email = auth()->user()->email;
+                    $log->modifyuser = 'Supplier contact created: ' . json_encode($data);
+                    $log->date_time = Carbon::now()->utc();
+                    $log->created_at = Carbon::now()->utc();
+                    $log->save();
+                }
              }
         }
         return response()->json([

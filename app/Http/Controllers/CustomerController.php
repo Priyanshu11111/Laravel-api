@@ -7,6 +7,7 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\UserActivitylog;
+use App\Notifications\MessageRead;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -15,19 +16,22 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::select('id','firstname', 'lastname','email')->get();
+        $customers = Customer::all();
         return response()->json($customers);
     /*     $url=url('/customer');
         $title="Registration Form";
         $data=compact('url');
         return view('/customer')->with($data); */
     }
-    public function destroy(Customer $customer)
-    {
-        $customer->delete();    
+    public function destroy($id)
+    {   
+        $customer=Customer::find($id);   
+        $customerId = $customer->id;
+        $customer->delete();
+         
         $log = new UserActivitylog();
         $log->email = $customer->email;
-        $log->modifyuser = 'Deleted';
+        $log->modifyuser = 'Deleted'.$customerId;
         $log->date_time =Carbon::now();
         $log->save();
         return response()->json([
@@ -36,16 +40,17 @@ class CustomerController extends Controller
         ], 200);
     }
 
-    public function update(Customer $customer, Request $request)
+    public function update($id, Request $request)
     {
         $request->validate([
             'firstname' => 'required',
             'lastname' => 'required',
-            'email' => 'required|email|unique:customers,email,'.$customer->id,
+            'email' => 'required',
             'password' => 'required|confirmed',
             'password_confirmation' => 'required',
         ]);
 
+        $customer=Customer::find($id);
         $customer->firstname = $request->input('firstname');
         $customer->lastname = $request->input('lastname');
         $customer->email = $request->input('email');
@@ -108,11 +113,7 @@ class CustomerController extends Controller
      $customers = Customer::paginate(10);
     return view('customer-view', compact('customers'));
     }
-    public function delete($id){
-        Customer::find($id)->delete();
-        return redirect()->back();
-    }
-   
+
     public function edit($id){
         $customer=Customer::find($id);
         if(is_null($customer)){
@@ -124,43 +125,48 @@ class CustomerController extends Controller
             return view('customer')->with($data);
         }
     }
-    public function login(Request $request){
-        $user=Customer::where('email',$request->email)->first();
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response([
-                'message' => "invalid credentials"
-            ], 401);
-        }
-    
-        $log = new UserActivitylog();
-        $log->email = $user->email;
-        $log->modifyuser = 'User Login';
-        $log->date_time = Carbon::now();
-        $log->save();
-
-        $expiresAt = Carbon::now()->addMinutes(1);
-        $token = $user->createToken('my-app-token',['expires_at' => $expiresAt])->plainTextToken;
-
-
-        return response([
-            'message' => "success",
-            'token' => $token,
-            'expires_at' => $expiresAt->toDateTimeString(),
-        ]);
-
-    } 
-    public function refreshToken(Request $request)
+    public function login(Request $request)
 {
-    $user = $request->user();
-    $user->tokens()->delete();
+    $user = Customer::where('email', $request->email)->first();
 
-    $expiresAt = Carbon::now()->addMinutes(1);
-    $token = $user->createToken('refresh-token',['expires_at' => $expiresAt])->plainTextToken;
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response([
+            'message' => "invalid credentials"
+        ], 401);
+    }
+
+    $log = new UserActivitylog();
+    $log->email = $user->email;
+    $log->modifyuser = 'User Login';
+    $log->date_time = Carbon::now();
+    $log->save();
+
+    $token = $user->createToken('my-app-token');
+
+    // set the token expiration time to 30 minutes from now
+    $expiresAt = Carbon::now()->addMinutes(30);
+    $token->expires_at = $expiresAt;
+
 
     return response([
         'message' => "success",
-        'token' => $token,
+        'token' => $token->plainTextToken,
         'expires_at' => $expiresAt->toDateTimeString(),
+    ]);
+}
+public function refreshToken(Request $request)
+{
+    $user = $request->user();
+    $token = $user->tokens()->where('name', 'refresh-token')->first();
+
+    if (!$token || !$token->isValid()) {
+     $newToken = $user->createToken('refresh-token', ['expires_at' => Carbon::now()->addMinutes(5)]);
+    }
+    // Create a new refresh token with a new expiration time
+    return response([
+        'message' => 'success',
+        'token' => $newToken->plainTextToken,
+        'expires_at' => $newToken->accessToken->expires_at,
     ]);
 }
     public function getNotifications($id=null) {
@@ -168,8 +174,7 @@ class CustomerController extends Controller
         $user = auth()->user();
         
         // Get the notifications for the user
-        $notifications = $user->notifications;
-
+        $notifications = $user->unreadNotifications;
         $unreadCount = $user->unreadNotifications->count();
 
         if ($id !== null) {
@@ -187,6 +192,7 @@ class CustomerController extends Controller
             return  [
                 'id' => $notification->id,
                 'data' => $notification->data,
+                'read_at'=>$notification->read_at,
             ];
         });
         
@@ -197,20 +203,63 @@ class CustomerController extends Controller
         ]);
        
     }
+    public function getallnotifications() {
+        // Get the authenticated user
+        $user = auth()->user();
+        
+        // Get the notifications for the user
+        $notifications = $user->notifications;
+
+    
+        $notificationsData = $notifications->map(function ($notification) {
+            return  [
+                'id' => $notification->id,
+                'data' => $notification->data,
+                'read_at'=>$notification->read_at,
+            ];
+        });
+        
+        // Return the notifications as a response
+        return response()->json([
+            'notifications' => $notificationsData,
+        ]);
+       
+    }
     public function markNotificationsAsRead($id)
 {
     // Get the authenticated user
     $user = auth()->user();
     \Log::debug($id);
+
     $notification = $user->notifications()->findOrFail($id);
     $notification->markAsRead();
-
+/* 
+    $admin = Customer::where('role', '1')->first();
+    $notificationsData = $notifications->map(function ($notification) {
+        return  [
+            'data' => $notification->data,
+        ];
+    });
     
+    $admin->notify(new MessageRead($user, $notificationsData)); */
     // Return a success response
     return response()->json([
         'success' => true,
         'notifications' => $notification
     ]);
+}
+public function markAsReadall(){
+        // Get the authenticated user
+        $user = auth()->user();
+
+        // Mark all unread notifications as read
+        $user->unreadNotifications->markAsRead();
+    
+        // Return a success response
+        return response()->json([
+            'success' => true,
+            'message' => 'All notifications have been marked as read.'
+        ]);
 }
     public function getAuthorizedUserInfo() {
         $user = auth()->user();
@@ -304,11 +353,11 @@ class CustomerController extends Controller
     } else {
         $data = compact('customer');
         return $data;
-    }
-    
+    } 
 }
     public function showactivity(){
         $customers = UserActivitylog::select('id','email','modifyuser','created_at','updated_at')->get();
     return response()->json($customers);
     }
+   
 }

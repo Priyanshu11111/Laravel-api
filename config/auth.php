@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'user_activitylogs',
+        ],
     ],
 
     /*
@@ -64,7 +68,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-
+        'user_activitylogs'=>[
+            'driver' => 'eloquent',
+            'model' => App\Models\UserActivitylog::class,
+        ],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
