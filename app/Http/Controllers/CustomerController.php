@@ -188,18 +188,14 @@ public function refreshToken(Request $request)
                 'unread_count' => $unreadCount
             ]);
         }
-        $notificationsData = $notifications->map(function ($notification) {
-            return  [
-                'id' => $notification->id,
-                'data' => $notification->data,
-                'read_at'=>$notification->read_at,
-            ];
-        });
+
         
         // Return the notifications as a response
         return response()->json([
-            'notifications' => $notificationsData,
-            'unread_count' => $unreadCount
+            'notifications' => $notifications,
+        /*     'types' => $notifications->pluck('type')->unique()->values(),
+            'id' => $notifications->pluck('id')->unique()->values(), */
+            'unread_count' => $unreadCount,
         ]);
        
     }

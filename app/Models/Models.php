@@ -33,6 +33,6 @@ class Models extends  Authenticatable
     }
     public function needs()
     {
-        return $this->belongsTo('App\Models\Need','');
+        return $this->belongsTo('App\Models\Need','model');
     }
 }

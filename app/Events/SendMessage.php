@@ -19,18 +19,20 @@ class SendMessage implements ShouldBroadcast
      *
      * @return void
      */
+     public $message;
 
-    
-    public function __construct(public string $username,
-    public string $message)
-    {
-        
-    }
-    public function broadcastOn()
-    {
-        return ('chat');
-    }
-    public function broadcastAs(){
-        return('message');
-    }
+     public function __construct($message)
+     {
+         $this->message = $message;
+     }
+   
+     public function broadcastOn()
+     {
+         return ['my-channel'];
+     }
+   
+     public function broadcastAs()
+     {
+         return 'my-event';
+     }
 }

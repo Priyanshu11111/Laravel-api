@@ -26,7 +26,8 @@ class Need extends Model
     {
         return $this->belongsTo(Types::class,'types');
     }
-    public function model(){
-        return $this->belongsTo(Models::class,'model');
+    public function model()
+    {
+        return $this->belongsTo(Models::class,'models');
     }
 }

@@ -19,14 +19,10 @@ class RequsetNotification extends Notification
      *
      * @return void
      */
-    public function __construct($send)
+    public function __construct(Need $send)
     {
         $this->send = $send;
-\Log::debug($this->send->model);
-
-
     }
-
     /**
      * Get the notification's delivery channels.
      *
@@ -61,7 +57,7 @@ class RequsetNotification extends Notification
     public function toArray($notifiable){
 
         return [    
-            "Requested :Type:-{$this->send->type->name},Model:-{$this->send->model},Request Reason:{$this->send->requestreason}-,Requested_by :{$this->send->user->firstname}",
+            "Requested :Type:-{$this->send->type->name},Model:-{$this->send->model->name},Request Reason:{$this->send->requestreason}-,Requested_by :{$this->send->user->firstname}",
         ];
     }
 }

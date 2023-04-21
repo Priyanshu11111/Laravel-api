@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Need;
+use App\Models\Models;
+
 use App\Notifications\RequestAcceptedNotification;
 use App\Notifications\RequestDeclinedNotification;
 use App\Notifications\RequsetNotification;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\Notification;
 use App\Models\UserActivitylog;
 use App\Models\Types;
 use Carbon\Carbon;
+use Pusher\Pusher;
+
 
 class RequestController extends Controller
 {
@@ -26,7 +30,7 @@ class RequestController extends Controller
     public function store(Request $request){
         $rules = [
             'types' => 'required',
-            'model' => 'required',
+            'models' => 'required',
             'requestreason' => 'required',
         ];
         $request->validate($rules);
@@ -36,13 +40,15 @@ class RequestController extends Controller
         $oldAttributes = $send->getAttributes();
 
         $send->types = $request['types'];
-        $send->model = $request['model'];
+        $send->models = $request['models'];
         $send->requestreason = $request['requestreason'];
         $send->user_id = $user->id;
         $send->status = '0';
         $send->user_id = $user->id;
         $send->save();
 
+        $send->load('model');
+        $modelName = $send->model->name;
         $newAttributes = $send->getAttributes(); // Get the updated attributes
         $changes = array_diff_assoc($newAttributes, $oldAttributes); // Get the attributes that were changed
 
@@ -55,10 +61,23 @@ class RequestController extends Controller
     
         $admin =Customer::where('role', '1')->first();
         Notification::send($admin, new RequsetNotification($send));
+        $pusher = new Pusher(
+            'add73946e79f8b4e1b9c',
+            '014b1a09d7f631db66da',
+            '1571293',
+            [
+                'cluster' => 'ap2',
+                'encrypted' => true
+            ]
+        );
+        $data = ['message' => 'New request received', 'user_name' => $user->firstname,
+        'models' => $modelName];
+
+        $pusher->trigger('my-channel', 'my-event', $data);
         return response()->json([
             'status' => true,
             'message' => 'Request Send successfully',
-            'supplier' => $send,
+            'request' => $send,
         ], 200);
     }
     public function action(){
@@ -71,7 +90,7 @@ class RequestController extends Controller
 
     public function update(Request $request, $id) {
         $need = Need::findOrFail($id);
-$oldAttributes = $need->getAttributes();
+        $oldAttributes = $need->getAttributes();
 
         if ($need->status != '0') {
             return response()->json([
@@ -141,12 +160,29 @@ $oldAttributes = $need->getAttributes();
         }
     
         $models = $type->models; // retrieve all models associated with this type
-    
         if (!$models) {
             return response()->json(['error' => 'No models found for this type'], 404);
         }
-    
         return response()->json(['type' => $type], 200);
+    }
+    public function getModelName($id)
+    {
+        $model = Models::find($id);
+     
+        if (!$model) {
+            return response()->json(['error' => 'Model not found'], 404);
+        }
+        $type = $model->type; // assuming you have a "model" relationship defined in the Types model
+
+        $supplier = $model->supplier;
+        if (!$supplier) {
+
+            return response()->json(['error' => 'Supplier not found'], 404);
+        }
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+        return response()->json(['model' => $model], 200);
     }
     public function getneed($id)
     {
@@ -155,11 +191,13 @@ $oldAttributes = $need->getAttributes();
             return response()->json(['error' => 'Request not found'], 404);
         }
 
-        $type = $needs->type;
+        $type = $needs->type;     
+        $models = $needs->model;
+
         if(!$type){
             return response()->json(['error' => 'Types not found'], 404);
         }
-        return response()->json(['show' => $needs], 200);
+        return response()->json(['show' => $needs,'model'=> $models], 200);
         $data = compact('show');
         return $data;
   /*       $requests = $this->getneed($id)->original['Request'];

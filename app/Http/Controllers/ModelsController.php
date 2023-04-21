@@ -120,7 +120,8 @@ class ModelsController extends Controller
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
-        return response()->json(['model' => $model], 200);        if (is_null($model)) {
+        return response()->json(['model' => $model], 200);        
+        if (is_null($model)) {
             return redirect('/customer');
         } else {
             $data = compact('model');

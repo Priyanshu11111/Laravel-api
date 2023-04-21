@@ -29,22 +29,18 @@ return [
     */
 
     'connections' => [
-
         'pusher' => [
             'driver' => 'pusher',
-            'key' => env('PUSHER_APP_KEY'),
-            'secret' => env('PUSHER_APP_SECRET'),
-            'app_id' => env('PUSHER_APP_ID'),
+            'key' => 'add73946e79f8b4e1b9c',
+            'secret' => '014b1a09d7f631db66da',
+            'app_id' => '1571293',
             'options' => [
-                'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
-                'port' => env('PUSHER_PORT', 443),
-                'scheme' => env('PUSHER_SCHEME', 'https'),
-                'encrypted' => true,
-                'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
+                'cluster' => 'ap2',
+                'encrypted' => false
             ],
-            'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
-            ],
+            'host' => null,
+            'port' => null,
+            'timeout' => null,
         ],
 
         'ably' => [
