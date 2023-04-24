@@ -47,6 +47,8 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/viewmodel/{id}',[ModelsController::class,'viewmodels']);
     Route::get('/userrequest',[RequestController::class,'getauthrequest']);
     Route::post('/readall',[CustomerController::class,'markAsReadall']);
+    Route::post('/rolecreate',[CustomerController::class,'role']);
+    Route::get('/getrole',[CustomerController::class,'getUserRole']);
 });
 Route::apiResource('asset',AssetController::class);
 Route::post('customer',[CustomerController::class,'login']); 

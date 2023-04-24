@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Models\Roles;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\UserActivitylog;
+
+
 use App\Notifications\MessageRead;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\Log;
@@ -75,7 +78,6 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        
         $rules = [
             'firstname' => 'required',
             'lastname' => 'required',
@@ -107,7 +109,24 @@ class CustomerController extends Controller
         'customer' => $customer
     ], 200);
 }
-
+public function role(Request $request){
+    $rules = [
+    'name' => 'required',
+    ];
+    $request->validate($rules);
+    $role= new Roles();
+    $role->name = $request['name'];
+    $role->save();
+    return response()->json([
+        'status' => true,
+        'message' => 'New Role added',
+        'customer' => $role
+    ], 200);
+}
+public function getUserRole(){
+    $roles = Roles::all();
+    return response()->json($roles);
+}
     public function view()
     {
      $customers = Customer::paginate(10);
