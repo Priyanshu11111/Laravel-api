@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ModelsController;
+use App\Http\Controllers\ModulesController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\TypesController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\RequestController;
@@ -20,8 +22,8 @@ use App\Http\Controllers\RequestController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::apiResource('users',CustomerController::class);
-Route::get('notifications{id}',[NotificationController::class,'show']);
+/* Route::apiResource('users',CustomerController::class);
+ */Route::get('notifications{id}',[NotificationController::class,'show']);
 Route::middleware('auth:sanctum')->group(function (){
     Route::put('/profile',[CustomerController::class,'updateProfile']);
     Route::get('/profile',[CustomerController::class,'getAuthorizedUserInfo']);
@@ -49,6 +51,8 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/readall',[CustomerController::class,'markAsReadall']);
     Route::post('/rolecreate',[CustomerController::class,'role']);
     Route::get('/getrole',[CustomerController::class,'getUserRole']);
+    Route::post('/createpermission',[PermissionsController::class,'store']);
+    Route::get('/modules',[ModulesController::class,'index']);
 });
 Route::apiResource('asset',AssetController::class);
 Route::post('customer',[CustomerController::class,'login']); 

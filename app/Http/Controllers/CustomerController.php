@@ -14,12 +14,16 @@ use App\Notifications\MessageRead;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Notifications\DatabaseNotificationCollection;
+use Illuminate\Support\Facades\Auth; // Add this line to import the Auth class
 
 class CustomerController extends Controller
 {
     public function index()
     {
+
         $customers = Customer::all();
+        $user = auth()->user();
+        \Log::debug($user);
         return response()->json($customers);
     /*     $url=url('/customer');
         $title="Registration Form";
@@ -78,6 +82,7 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
+       
         $rules = [
             'firstname' => 'required',
             'lastname' => 'required',
@@ -124,7 +129,7 @@ public function role(Request $request){
     ], 200);
 }
 public function getUserRole(){
-    $roles = Roles::all();
+    $roles = Roles::with('permissions')->get();
     return response()->json($roles);
 }
     public function view()
@@ -244,6 +249,7 @@ public function refreshToken(Request $request)
 {
     // Get the authenticated user
     $user = auth()->user();
+    
     \Log::debug($id);
 
     $notification = $user->notifications()->findOrFail($id);

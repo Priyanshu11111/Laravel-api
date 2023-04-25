@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Need;
 use App\Models\Models;
+use App\Models\Roles;
 
 use App\Notifications\RequestAcceptedNotification;
 use App\Notifications\RequestDeclinedNotification;
@@ -15,6 +16,7 @@ use App\Models\UserActivitylog;
 use App\Models\Types;
 use Carbon\Carbon;
 use Pusher\Pusher;
+use Illuminate\Support\Facades\Auth; // Add this line to import the Auth class
 
 
 class RequestController extends Controller
@@ -28,6 +30,7 @@ class RequestController extends Controller
         }
     }
     public function store(Request $request){
+      
         $rules = [
             'types' => 'required',
             'models' => 'required',
@@ -144,6 +147,16 @@ class RequestController extends Controller
         }
     }
     public function requestData(){
+        $user=Auth::user();
+        \Log::debug($user);
+        $role = Roles::with('permissions')->findOrFail($user->role);
+        
+
+        $hasReadPermission = $role->permissions->where('read', 1)->isNotEmpty();
+        if (!$hasReadPermission) {
+        return response()->json(['error' => 'You do not have permission to read data.'], 403);
+        }
+    
         $requests = $this->getauthrequest()->original;
         if (isset($requests['Requests'])) {
             return response()->json($requests['Requests']); 

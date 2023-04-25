@@ -13,4 +13,11 @@ class Roles extends Model
       'id',
       'name'
     ];
+    public function user()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+    public function permissions(){
+      return $this->hasMany('App\Models\Permissions','role');
+    }
 }

@@ -23,5 +23,14 @@ class Customer extends Authenticatable
         'password',
         'password_confirmation',
     ];   
+    
+    public function hasRole($role)
+    {
+        return $this->role == $role;
+    }
+    public function user()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }
 
