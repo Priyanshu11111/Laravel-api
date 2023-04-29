@@ -28,9 +28,6 @@ class Customer extends Authenticatable
     {
         return $this->role == $role;
     }
-    public function user()
-    {
-        return $this->belongsTo(Customer::class);
-    }
+  
 }
 

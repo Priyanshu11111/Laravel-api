@@ -166,13 +166,13 @@ class ModelsController extends Controller
     }
     public function getAllModels(){
         $models = Models::with(['type','supplier'])->get();
-
+        \Log::debug($models);
     if (!$models->count()) {
         return response()->json(['error' => 'No models found'], 404);
     }
     foreach ($models as $model) {
         $type = $model->type; // assuming you have a "model" relationship defined in the Types model
-
+        
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }

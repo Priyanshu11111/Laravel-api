@@ -152,7 +152,7 @@ class RequestController extends Controller
         $role = Roles::with('permissions')->findOrFail($user->role);
         
 
-        $hasReadPermission = $role->permissions->where('read', 1)->isNotEmpty();
+        $hasReadPermission = $role->permissions;
         if (!$hasReadPermission) {
         return response()->json(['error' => 'You do not have permission to read data.'], 403);
         }

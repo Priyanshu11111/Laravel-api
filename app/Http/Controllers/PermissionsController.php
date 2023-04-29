@@ -20,7 +20,7 @@ class PermissionsController extends Controller
         $rules = [
             'name' => 'required',
             'role' => 'required',
-            'permissions' => 'required|array', // make sure the "permissions" field is an array
+            'module' => 'required|array', // make sure the "permissions" field is an array
            // make sure the "write" field is an array
         ];
 
@@ -28,13 +28,13 @@ class PermissionsController extends Controller
         $data = [];
 
         // an array to hold the records to be inserted
-        $permissions = $request['permissions'];
+        $permissions = $request['module'];
     
         for ($i = 0; $i < count($permissions); $i++) {
             $data[] = [
                 'name' => $request['name'],
                 'role' => $request['role'],
-                'permissions' => $permissions[$i]['permission'],
+                'module' => $permissions[$i]['module'],
                 'read' => $permissions[$i]['read'],
                 'write' => $permissions[$i]['write'],
                 'created_at' => now(),

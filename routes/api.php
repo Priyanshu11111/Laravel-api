@@ -22,9 +22,9 @@ use App\Http\Controllers\RequestController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-/* Route::apiResource('users',CustomerController::class);
- */Route::get('notifications{id}',[NotificationController::class,'show']);
+Route::get('notifications{id}',[NotificationController::class,'show']);
 Route::middleware('auth:sanctum')->group(function (){
+    Route::apiResource('users',CustomerController::class);
     Route::put('/profile',[CustomerController::class,'updateProfile']);
     Route::get('/profile',[CustomerController::class,'getAuthorizedUserInfo']);
     Route::post('/logout',[CustomerController::class,'logout']);

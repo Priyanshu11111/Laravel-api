@@ -14,8 +14,7 @@ class AssetController extends Controller
      */
     public function index()
     {
-        $customers = Asset::select('id','name', 'product-name','image')->get();
-        return response()->json($customers);
+       
     }
 
     /**
@@ -36,18 +35,10 @@ class AssetController extends Controller
      */
     public function store(Request $request)
     {
-      if($request->hasFile('image')){
-        $image = $request->file('image');
-        $name = time().'.'.$image->getClientOriginalExtension();
-        $destinationPath = public_path('/images');
-        $image->move($destinationPath, $name);
-        $requestData['image'] = $name;
-    }
-
-    $requestData = $request->all();
     $requestData['name'] = $request->input('name');
-    $requestData['product-name'] = $request->input('product-name');
-
+    $requestData['model'] = $request->input('model');
+    $requestData['ownername'] = $request->input('ownername');
+    $requestData['status'] = $request->input('status');
     $asset = Asset::create($requestData);
     return response()->json($asset, 201);
     }

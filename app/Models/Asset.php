@@ -12,7 +12,8 @@ class Asset extends Model
     protected $fillable=[
         'id',
         'name',
-        'product-name',
-        'image',
+        'model',
+        'ownername',
+        'status',
     ];
 }

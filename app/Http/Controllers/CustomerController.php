@@ -20,10 +20,9 @@ class CustomerController extends Controller
 {
     public function index()
     {
-
-        $customers = Customer::all();
-        $user = auth()->user();
+        $user=Auth::user();
         \Log::debug($user);
+        $customers = Customer::all();
         return response()->json($customers);
     /*     $url=url('/customer');
         $title="Registration Form";
@@ -158,6 +157,13 @@ public function getUserRole(){
             'message' => "invalid credentials"
         ], 401);
     }
+    $role = Roles::with('permissions')->findOrFail($user->role);
+        
+    $hasReadPermissions = $role->permissions;
+   \Log::debug($hasReadPermissions);
+    if (!$hasReadPermissions) {
+    return response()->json(['error' => 'You do not have permission to read data.'], 403);
+    }
 
     $log = new UserActivitylog();
     $log->email = $user->email;
@@ -170,11 +176,10 @@ public function getUserRole(){
     // set the token expiration time to 30 minutes from now
     $expiresAt = Carbon::now()->addMinutes(30);
     $token->expires_at = $expiresAt;
-
-
     return response([
         'message' => "success",
         'token' => $token->plainTextToken,
+        'permissions' =>$hasReadPermissions,
         'expires_at' => $expiresAt->toDateTimeString(),
     ]);
 }
