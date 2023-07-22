@@ -5,18 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // Add this line to import the Auth class
+use Carbon\Carbon;
+use App\Models\UserActivitylog;
 
 class PermissionsController extends Controller
 {
     public function Index(){
-        
+        $roles = Permissions::with('roles')->get();
+    return response()->json($roles);
     }
-    public function store(Request $request){
-
-        if (!Auth::user()->hasRole('1')) {
-            return response()->json(['error' => 'You do not have permission to perform this action.'], 403);
-        }
-        
+    public function store(Request $request){        
         $rules = [
             'name' => 'required',
             'role' => 'required',
@@ -41,11 +39,27 @@ class PermissionsController extends Controller
                 'updated_at' => now(),
             ];
         }
-    
         Permissions::insert($data); // bulk insert the records
     
         return response()->json($data);
         
+    }
+    public function destroy($id)
+    {   
+        $permissions=Permissions::find($id);   
+        $permmissionId = $permissions->id;
+        $permissions->delete();
+       
+        $log = new UserActivitylog();
+        $log->email = auth()->user()->email;
+        $log->modifyuser = 'Deleted Permission'.$permmissionId;
+        $log->date_time =Carbon::now();
+        $log->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => "Record deleted successfully",
+        ], 200);
     }
   
 }

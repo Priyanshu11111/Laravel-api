@@ -15,7 +15,7 @@ class Roles extends Model
     ];
     public function user()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class,'id');
     }
     public function permissions(){
       return $this->hasMany('App\Models\Permissions','role');

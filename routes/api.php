@@ -53,8 +53,11 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/getrole',[CustomerController::class,'getUserRole']);
     Route::post('/createpermission',[PermissionsController::class,'store']);
     Route::get('/modules',[ModulesController::class,'index']);
+    Route::get('/getpermissions',[PermissionsController::class,'index']);
+    Route::apiResource('asset',AssetController::class);
+    Route::delete('/delete/{id}',[PermissionsController::class,'destroy']);
+    Route::get('/assetshow',[AssetController::class,'showuserasset']);
 });
-Route::apiResource('asset',AssetController::class);
 Route::post('customer',[CustomerController::class,'login']); 
 Route::post('users/login',[CustomerController::class,'login']);
 

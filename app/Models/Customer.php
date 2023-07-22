@@ -23,10 +23,8 @@ class Customer extends Authenticatable
         'password',
         'password_confirmation',
     ];   
-    
-    public function hasRole($role)
-    {
-        return $this->role == $role;
+    public function role(){
+        return $this->belongsTo('App\Models\Roles','role');
     }
   
 }

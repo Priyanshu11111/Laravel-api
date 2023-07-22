@@ -8,8 +8,6 @@ use App\Models\Roles;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use App\Models\UserActivitylog;
-
-
 use App\Notifications\MessageRead;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Support\Facades\Log;
@@ -21,8 +19,7 @@ class CustomerController extends Controller
     public function index()
     {
         $user=Auth::user();
-        \Log::debug($user);
-        $customers = Customer::all();
+        $customers = Customer::with('role')->get();
         return response()->json($customers);
     /*     $url=url('/customer');
         $title="Registration Form";
@@ -160,7 +157,6 @@ public function getUserRole(){
     $role = Roles::with('permissions')->findOrFail($user->role);
         
     $hasReadPermissions = $role->permissions;
-   \Log::debug($hasReadPermissions);
     if (!$hasReadPermissions) {
     return response()->json(['error' => 'You do not have permission to read data.'], 403);
     }

@@ -16,4 +16,13 @@ class Asset extends Model
         'ownername',
         'status',
     ];
+    public function model(){
+        return $this->belongsTo(Models::class,'model');
+    }
+    public function ownername(){
+        return $this->belongsTo(Customer::class,'ownername');
+    }
 }
+
+
+
